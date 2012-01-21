@@ -38,6 +38,11 @@ task :clean do
 end
 
 
+desc "package into a jar"
+task :package do
+  sh "mvn package"
+end
+
 desc "xmllint the pom files"
 task :tidy do
   xmlfiles.each do | xml | 
@@ -52,4 +57,15 @@ desc "run scalatest tests"
 task :test do
   sh "mvn test"
 end
+
+desc "console!"
+task :console do
+  sh "mvn scala:console"
+end
+
+desc "compile " 
+task :compile do
+  sh "mvn compile"
+end
+
 
