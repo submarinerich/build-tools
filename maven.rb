@@ -55,6 +55,9 @@ end
 
 desc "run scalatest tests"
 task :test do
+  if !File.directory?("/tmp/test") 
+    Dir.mkdir("/tmp/test")
+  end
   sh "mvn test"
 end
 

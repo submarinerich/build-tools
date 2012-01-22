@@ -3,6 +3,7 @@ require 'build/maven.rb'
 
 desc "publish release version"
 task :publish => [:package] do
+  Rake::Task['clean'].invoke
   pi = projectInfo()
   artifactId = pi[2]
   groupId = pi[3]
@@ -29,6 +30,7 @@ require 'date'
 require 'time'
 desc "publish oneoff to the server"
 task :publishoneoff => [ :package ] do
+  Rake::Task['clean'].invoke
   pi = projectInfo()
   artifactId = pi[2]
   groupId = pi[3]
