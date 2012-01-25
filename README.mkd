@@ -1,0 +1,25 @@
+
+
+## Build Tools ##
+
+mostly ruby scripts to be included in rake files
+
+usually added to any of our projects in the following manner:
+
+    git submodule add git://github.com/submarinerich/build-tools.git build
+
+
+**maven.rb**
+
+generic utilities for doing common maven tasks
+
+
+**library.rb**
+
+utilities for interacting with libraries with functions specific to libraries (tagging, publishing to our maven repo, etc)
+
+
+**hadoop.rb**
+
+_roadmap_ utilities for interacting with hadoop
+
