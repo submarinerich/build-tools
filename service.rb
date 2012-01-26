@@ -2,7 +2,52 @@
 require 'rubygems'
 require 'aws/s3'
 
+require 'build/maven.rb'
 
+if !File.exists?("build/README.mkd") 
+  sh "git submodule init"
+  sh "git submodule sync"
+  sh "git submodule update"
+end
+
+def packageForDeployment( conn,warDest )
+  modifyJettyEnv( conn ) 
+  sh "mvn package"
+  restoreJettyEnv()
+  sh "mkdir -p deployment"
+  sh "cp target/"+warDest+" deployment/"
+  return "deployment/"+warDest 
+end 
+
+def regularDeployment( connection, productionWar, artifactId )
+  Rake::Task['clean'].invoke
+  localWar = packageForDeployment( connection,productionWar )
+  results = uploadWar(localWar)
+  puts "your file has been uploaded to bucket: sr-staging, key :"+results[0]+"\n"
+  label = "sr-"+results[1]
+  source = "sr-staging/"+results[0]
+  sh "elastic-beanstalk-create-application-version -a "+artifactId+" -l "+label+" -c -s "+source 
+  sh "elastic-beanstalk-update-application-version -a "+artifactId+" -l "+label
+end
+
+def startupDeployment( connection, productionWar,ebEnv, artifactId )
+  Rake::Task['clean'].invoke
+  sh "elastic-beanstalk-create-application -a "+artifactId
+  sh "elastic-beanstalk-create-configuration-template -a "+artifactId+" -t "+artifactId 
+  localWar = packageForDeployment( connection ,productionWar )
+  results = uploadWar(localWar)
+  label = "sr-"+results[1]
+  source = "sr-staging/"+results[0]
+  sh "elastic-beanstalk-create-application-version -a "+artifactId+" -l "+label+" -c -s "+source 
+  sh "elastic-beanstalk-create-environment -a "+artifactId+" -t "+artifactId+" -e "+ebEnv+" -l "+label 
+end 
+
+def shutdownDeployment( ebEnv, artifactId )
+  sh "elastic-beanstalk-delete-environment-configuration -e "+ebEnv+" -a "+artifactId
+  sh "elastic-beanstalk-delete-configuration-template -t "+artifactId+" -a "+artifactId
+  sh "elastic-beanstalk-terminate-environment -e "+ebEnv
+  sh "elastic-beanstalk-delete-application -a "+artifactId
+end
 
 def upload( file )
 
@@ -33,10 +78,9 @@ def uploadWar( warfile )
   newfilename = firstchunk + "-" + timestring + ".war"
   sh "cp "+warfile+" "+newfilename
   upload(newfilename)
-  return newfilename
+  return [newfilename,timestring]
 end
 
-require 'build/maven.rb'
 
 JETTY_WEB="src/main/webapp/WEB-INF/jetty-web.xml"
 
