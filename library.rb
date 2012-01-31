@@ -12,7 +12,7 @@ task :publish => [:package] do
   jarname = artifactId+"_"+scalaVersion+"-"+version+".jar"
   pomname = artifactId+"_"+scalaVersion+"-"+version+".pom"
   sh "mkdir deployment"
-  sh "cat example.pom | sed 's/$CURRENTVERSION/"+version+"/' | 's/$VERSION/"+version+"/' | sed 's/$SCALAVERSION/"+scalaVersion+"/' > deployment/"+pomname
+  sh "cat example.pom | sed 's/$CURRENTVERSION/"+version+"/' | sed 's/$VERSION/"+version+"/' | sed 's/$SCALAVERSION/"+scalaVersion+"/' > deployment/"+pomname
   serverpath = "/var/www/webapps/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"/"
   sh "cp target/"+artifactId+"-"+version+".jar deployment/"+jarname
   sh "ssh -i ~/.ec2/ftv.pem ubuntu@submarinerich.com mkdir -p "+serverpath
