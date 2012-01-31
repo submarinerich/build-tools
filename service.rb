@@ -4,12 +4,6 @@ require 'aws/s3'
 
 require 'build/maven.rb'
 
-if !File.exists?("build/README.mkd") 
-  sh "git submodule init"
-  sh "git submodule sync"
-  sh "git submodule update"
-end
-
 def packageForDeployment( conn,warDest )
   modifyJettyEnv( conn ) 
   sh "mvn package"

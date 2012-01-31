@@ -2,6 +2,7 @@
 xmlfiles = ["pom.xml","example.pom"]
 
 require 'rexml/document'
+require 'library.rb'
 
 def projectInfo()
   wholepom = ""
