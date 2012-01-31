@@ -2,8 +2,8 @@
 require 'build/maven.rb'
 
 desc "publish release version"
-task :publish => [:package] do
-  Rake::Task['clean'].invoke
+task :publish => [:clean] do
+  Rake::Task['package'].invoke
   pi = projectInfo()
   artifactId = pi[2]
   groupId = pi[3]
@@ -13,7 +13,7 @@ task :publish => [:package] do
   pomname = artifactId+"_"+scalaVersion+"-"+version+".pom"
   sh "mkdir deployment"
   sh "cat example.pom | sed 's/$CURRENTVERSION/"+version+"/' | sed 's/$VERSION/"+version+"/' | sed 's/$SCALAVERSION/"+scalaVersion+"/' > deployment/"+pomname
-  serverpath = "/var/www/webapps/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"/"
+  serverpath = "/home/ubuntu/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"/"
   sh "cp target/"+artifactId+"-"+version+".jar deployment/"+jarname
   sh "ssh -i ~/.ec2/ftv.pem ubuntu@submarinerich.com mkdir -p "+serverpath
   sh "scp -i ~/.ec2/ftv.pem deployment/* ubuntu@submarinerich.com:"+serverpath
@@ -43,7 +43,7 @@ task :publishoneoff => [ :package ] do
   pomname = artifactId+"_"+scalaVersion+"-"+version+"."+timestring+".pom"
   minor = version+"."+timestring
   sh "cat example.pom | sed 's/$VERSION/"+minor+"/' | sed 's/$SCALAVERSION/"+scalaVersion+"/' > deployment/"+pomname
-  serverpath = "/var/www/webapps/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"."+timestring+"/"
+  serverpath = "/home/ubuntu/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"."+timestring+"/"
   sh "cp target/"+artifactId+"-"+version+".jar deployment/"+jarname
   sh "ssh -i ~/.ec2/ftv.pem ubuntu@submarinerich.com mkdir -p "+serverpath
   sh "scp -i ~/.ec2/ftv.pem deployment/* ubuntu@submarinerich.com:"+serverpath
