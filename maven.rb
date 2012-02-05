@@ -55,6 +55,7 @@ end
 
 desc "run scalatest tests"
 task :test do
+  sh "touch /tmp/test.txt"
   if !File.directory?("/tmp/test") 
     Dir.mkdir("/tmp/test")
   end
