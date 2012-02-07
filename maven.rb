@@ -41,6 +41,10 @@ end
 
 desc "package into a jar"
 task :package do
+  sh "touch /tmp/test.txt"
+  if !File.directory?("/tmp/test") 
+    Dir.mkdir("/tmp/test")
+  end
   sh "mvn package"
 end
 
