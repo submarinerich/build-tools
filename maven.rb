@@ -4,6 +4,12 @@ xmlfiles = ["pom.xml","example.pom"]
 require 'rexml/document'
 require 'build/library.rb'
 
+
+def version()
+  m = projectInfo()
+  return m[0]
+end
+
 def projectInfo()
   wholepom = ""
   file = File.new("pom.xml", "r")
