@@ -1,9 +1,10 @@
 
 xmlfiles = ["pom.xml","example.pom"]
 
+require 'rubygems'
 require 'rexml/document'
 require 'build/library.rb'
-
+require 'fileutils'
 
 def version()
   m = projectInfo()
@@ -40,17 +41,18 @@ end
 
 desc "clean everything"
 task :clean do
-  sh "rm -rf target/"
-  sh "rm -rf deployment/" 
+  FileUtils.rm_r "target/"
+  FileUtils.rm_r "deployment/"
 end
 
 
 desc "package into a jar"
 task :package do
-  sh "touch /tmp/test.txt"
+  File.new("/tmp/test.txt")
   if !File.directory?("/tmp/test") 
     Dir.mkdir("/tmp/test")
   end
+  Rake::Task['compile'].invoke
   sh "mvn package"
 end
 
@@ -66,7 +68,7 @@ end
 
 desc "run scalatest tests"
 task :test do
-  sh "touch /tmp/test.txt"
+  File.new("/tmp/test.txt")
   if !File.directory?("/tmp/test") 
     Dir.mkdir("/tmp/test")
   end

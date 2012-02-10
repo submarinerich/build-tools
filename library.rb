@@ -1,5 +1,32 @@
 
 require 'build/maven.rb'
+require 'rubygems'
+require 'fog'
+require 'fileutils'
+
+def makeDeploymentDirectory()
+  FileUtils.rm_r "deployment"
+  if !File.directory?("deployment")
+    Dir.mkdir("deployment")
+  end
+end
+
+def makePomFromTemplate(scalaVersion,productVersion,pomDestination)
+  pomTemplate = ""
+  file = File.new("example.pom","r")
+  while( line = file.gets )
+    pomTemplate += line
+  end
+  file.close
+  pomTemplate.gsub!("$VERSION",productVersion)
+  pomTemplate.gsub!("$SCALAVERSION",scalaVersion)
+  File.open("deployment/"+pomDestination, File::RDWR|File::CREAT,0755){ | f |
+    f.rewind
+    f.write(pomTemplate)
+    f.close
+  }
+end
+
 
 desc "publish release version"
 task :publish => [:clean] do
@@ -11,12 +38,29 @@ task :publish => [:clean] do
   scalaVersion = pi[1]
   jarname = artifactId+"_"+scalaVersion+"-"+version+".jar"
   pomname = artifactId+"_"+scalaVersion+"-"+version+".pom"
-  sh "mkdir deployment"
-  sh "cat example.pom | sed 's/$CURRENTVERSION/"+version+"/' | sed 's/$VERSION/"+version+"/' | sed 's/$SCALAVERSION/"+scalaVersion+"/' > deployment/"+pomname
   serverpath = "/home/ubuntu/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"/"
-  sh "cp target/"+artifactId+"-"+version+".jar deployment/"+jarname
-  sh "ssh -i ~/.ec2/ftv.pem ubuntu@submarinerich.com mkdir -p "+serverpath
-  sh "scp -i ~/.ec2/ftv.pem deployment/* ubuntu@submarinerich.com:"+serverpath
+
+
+  ## Connections
+
+  options = { :keys => "~/.ec2/ftv.pem" }
+  sshConnection = Fog::SSH::Real.new("submarinerich.com","ubuntu",options)
+  scpConnection = Fog::SCP::Real.new("submarinerich.com","ubuntu",options)
+
+
+  ## Deployment Work
+
+  makeDeploymentDirectory()
+  makePomFromTemplate( scalaVersion, version, pomname )
+
+  FileUtils.cp "target/"+artifactId+"-"+version+".jar", "deployment/"+jarname
+  sshConnection.run(["mkdir -p "+serverpath])
+  Dir.foreach("deployment"){ | x |
+    if x.include? ".pom" or x.include? ".jar"
+      puts "uploaded : "+x
+      scpConnection.upload("deployment/"+x, serverpath )
+    end
+  }
   puts "<dependency>"
   puts "  <groupId>com.submarinerich</groupId>"
   puts "  <artifactId>"+artifactId+"_"+scalaVersion+"</artifactId>"
@@ -30,7 +74,8 @@ require 'date'
 require 'time'
 desc "publish oneoff to the server"
 task :publishoneoff => [ :package ] do
-  Rake::Task['clean'].invoke
+
+  ## Variables/Naming
   pi = projectInfo()
   artifactId = pi[2]
   groupId = pi[3]
@@ -38,15 +83,32 @@ task :publishoneoff => [ :package ] do
   scalaVersion = pi[1]
   d = Time.new
   timestring = d.strftime("%Y%m%d%H%M%S")
-  sh "mkdir deployment"
   jarname = artifactId+"_"+scalaVersion+"-"+version+"."+timestring+".jar"
   pomname = artifactId+"_"+scalaVersion+"-"+version+"."+timestring+".pom"
   minor = version+"."+timestring
-  sh "cat example.pom | sed 's/$VERSION/"+minor+"/' | sed 's/$SCALAVERSION/"+scalaVersion+"/' > deployment/"+pomname
+  product = artifactId+"-"+version+".jar"
   serverpath = "/home/ubuntu/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"."+timestring+"/"
-  sh "cp target/"+artifactId+"-"+version+".jar deployment/"+jarname
-  sh "ssh -i ~/.ec2/ftv.pem ubuntu@submarinerich.com mkdir -p "+serverpath
-  sh "scp -i ~/.ec2/ftv.pem deployment/* ubuntu@submarinerich.com:"+serverpath
+
+
+  ## Server Connections
+  options = { :keys => "~/.ec2/ftv.pem" }
+  sshConnection = Fog::SSH::Real.new("submarinerich.com","ubuntu",options)
+  scpConnection = Fog::SCP::Real.new("submarinerich.com","ubuntu",options)
+
+
+  ## Deployment Work
+  
+  makeDeploymentDirectory()
+  makePomFromTemplate(scalaVersion,minor,pomname)
+
+  FileUtils.cp "target/"+product, "deployment/"+jarname
+  sshConnection.run(["mkdir -p "+serverpath])
+  Dir.foreach("deployment"){ | x |
+    if x.include? ".pom" or x.include? ".jar"
+      puts "uploaded : "+x
+      scpConnection.upload("deployment/"+x, serverpath )
+    end
+  }
   puts "<dependency>"
   puts "  <groupId>"+groupId+"</groupId>"
   puts "  <artifactId>"+artifactId+"_"+scalaVersion+"</artifactId>"
