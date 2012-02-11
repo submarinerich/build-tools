@@ -5,7 +5,9 @@ require 'fog'
 require 'fileutils'
 
 def makeDeploymentDirectory()
-  FileUtils.rm_r "deployment"
+  if File.directory?("deployment")
+    FileUtils.rm_r "deployment"
+  end
   if !File.directory?("deployment")
     Dir.mkdir("deployment")
   end
@@ -26,6 +28,16 @@ def makePomFromTemplate(scalaVersion,productVersion,pomDestination)
     f.close
   }
 end
+
+def hashDeploymentFiles()
+  Dir.foreach("deployment"){ | x |
+    if x.include? ".pom" or x.include?".jar" and !x.include?".sha1" and !x.include?".md5"
+      sh "shasum deployment/"+x+" | cut -d ' ' -f 1 > deployment/"+x+".sha1"
+      sh "md5 deployment/"+x+" | cut -d ' ' -f 4 > deployment/"+x+".md5"
+    end
+  }
+end
+
 
 
 desc "publish release version"
@@ -54,9 +66,10 @@ task :publish => [:clean] do
   makePomFromTemplate( scalaVersion, version, pomname )
 
   FileUtils.cp "target/"+artifactId+"-"+version+".jar", "deployment/"+jarname
+  hashDeploymentFiles()
   sshConnection.run(["mkdir -p "+serverpath])
   Dir.foreach("deployment"){ | x |
-    if x.include? ".pom" or x.include? ".jar"
+    if x.include? ".pom" or x.include? ".jar" or x.include?".sha1" or x.include?".md5"
       puts "uploaded : "+x
       scpConnection.upload("deployment/"+x, serverpath )
     end
@@ -102,9 +115,10 @@ task :publishoneoff => [ :package ] do
   makePomFromTemplate(scalaVersion,minor,pomname)
 
   FileUtils.cp "target/"+product, "deployment/"+jarname
+  hashDeploymentFiles()
   sshConnection.run(["mkdir -p "+serverpath])
   Dir.foreach("deployment"){ | x |
-    if x.include? ".pom" or x.include? ".jar"
+    if x.include? ".pom" or x.include? ".jar" or x.include?".sha1" or x.include?".md5"
       puts "uploaded : "+x
       scpConnection.upload("deployment/"+x, serverpath )
     end
