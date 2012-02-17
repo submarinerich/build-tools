@@ -41,8 +41,15 @@ end
 
 desc "clean everything"
 task :clean do
-  FileUtils.rm_r "target/"
-  FileUtils.rm_r "deployment/"
+  if File.exist?("classpath.txt")
+    FileUtils.rm_r "classpath.txt"
+  end
+  if File.exist?("target")
+    FileUtils.rm_r "target/"
+  end
+  if File.exist?("deployment")
+    FileUtils.rm_r "deployment/"
+  end
 end
 
 
