@@ -50,6 +50,9 @@ task :clean do
   if File.exist?("deployment")
     FileUtils.rm_r "deployment/"
   end
+  if File.exist?("docs")
+    FileUtils.rm_r "docs/"
+  end
 end
 
 
