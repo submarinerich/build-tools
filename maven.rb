@@ -1,3 +1,4 @@
+
 xmlfiles = ["pom.xml","example.pom"]
 
 require 'rubygems'
@@ -57,14 +58,6 @@ end
 
 desc "package into a jar"
 task :package do
-  if( !File.exists?("/tmp/test.txt") )
-    File.open("/tmp/test.txt",'w')
-  end
-
-  File.new("/tmp/test.txt")
-  if !File.directory?("/tmp/test") 
-    Dir.mkdir("/tmp/test")
-  end
   Rake::Task['compile'].invoke
   sh "mvn package"
 end
