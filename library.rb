@@ -50,7 +50,7 @@ task :publish => [:clean] do
   scalaVersion = pi[1]
   jarname = artifactId+"_"+scalaVersion+"-"+version+".jar"
   pomname = artifactId+"_"+scalaVersion+"-"+version+".pom"
-  serverpath = "/home/ubuntu/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"/"
+  serverpath = "/var/www/webapps/maven/com/submarinerich/"+artifactId+"_"+scalaVersion+"/"+version+"/"
 
 
   ## Connections
@@ -68,10 +68,12 @@ task :publish => [:clean] do
   FileUtils.cp "target/"+artifactId+"-"+version+".jar", "deployment/"+jarname
   hashDeploymentFiles()
   sshConnection.run(["mkdir -p "+serverpath])
+  puts serverpath
+
   Dir.foreach("deployment"){ | x |
     if x.include? ".pom" or x.include? ".jar" or x.include?".sha1" or x.include?".md5"
-      puts "uploaded : "+x
       scpConnection.upload("deployment/"+x, serverpath )
+      puts "uploaded : "+x
     end
   }
   puts "<dependency>"
