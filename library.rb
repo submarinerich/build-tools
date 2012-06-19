@@ -55,9 +55,9 @@ task :publish => [:clean] do
 
   ## Connections
 
-  options = { :keys => "~/.ec2/ftv.pem" }
-  sshConnection = Fog::SSH::Real.new("submarinerich.com","ubuntu",options)
-  scpConnection = Fog::SCP::Real.new("submarinerich.com","ubuntu",options)
+  options = { :keys => "~/.ssh/id_dsa" }
+  sshConnection = Fog::SSH::Real.new("mvn.submarinerich.com","andersonmiller",options)
+  scpConnection = Fog::SCP::Real.new("mvn.submarinerich.com","andersonmiller",options)
 
 
   ## Deployment Work
