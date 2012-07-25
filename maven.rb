@@ -11,6 +11,20 @@ def version()
   return m[0]
 end
 
+def buildClasspath
+  if !File.exist?("classpath.txt")
+    sh "mvn dependency:build-classpath"
+  end
+  classpath = ""
+  file = File.new("classpath.txt", "r")
+  while (line = file.gets)
+    classpath += line
+  end
+  file.close
+  return classpath
+end
+
+
 def projectInfo()
   wholepom = ""
   file = File.new("pom.xml", "r")
