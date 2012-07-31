@@ -29,7 +29,7 @@ desc "update the database with everything since bootstrap"
 task :updatedb do
   Dir.foreach("db"){ | x |
     if x.include? "dbupdate.sql" and !x.include? ".swp"
-      sh "psql -h localhost -U postgres --file "+x
+      sh "psql -h localhost -U postgres --file db/"+x
     end
   }
 end
