@@ -40,4 +40,8 @@ task :resetdb => :initdb do
   puts "database reset"
 end
 
+desc "sql console"
+task :sqlconsole do
+  sh "psql -h localhost -U postgres"
+end
 
