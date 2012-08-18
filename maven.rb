@@ -101,4 +101,14 @@ task :compile do
   sh "mvn compile"
 end
 
+desc "deploy to dock server"
+task :deploy => :package do 
+  pi = projectInfo()
+  report("deployed"+pi[2])
+  options = { :keys => ENV['DEPLOYMENT_KEY'] }
+  scpConnection = Fog::SCP::Real.new(ENV['DEPLOYMENT_SERVER'],ENV['DEPLOYMENT_USER'],options)
+  scpConnection.upload("target/"+pi[2]+"-"+pi[0]+".one-jar.jar",ENV['DEPLOYMENT_PATH'])
+  puts "Uploaded file"
+end
+
 
