@@ -107,15 +107,7 @@ end
 desc "deploy to dock server"
 task :deploy => :package do 
   pi = projectInfo()
+  sh "fab -f build/admin.py install:"+pi[2]+","+pi[0]
   report("deployed"+pi[2])
-  options = { :keys => ENV['DEPLOYMENT_KEY'] }
-  scpConnection = Fog::SCP::Real.new(ENV['DEPLOYMENT_SERVER'],ENV['DEPLOYMENT_USER'],options)
-  scpConnection.upload("target/"+pi[2]+"-"+pi[0]+".one-jar.jar",ENV['DEPLOYMENT_PATH'])
-  puts "Uploaded file"
-  if File.exists? "build/admin.py"
-    sh "fab -f build/admin.py stop:"+pi[5]
-    sh "fab -f build/admin.py start:"+pi[5]+","+pi[2]
-  end
 end
-
 
