@@ -107,7 +107,23 @@ end
 desc "deploy to dock server"
 task :deploy => :package do 
   pi = projectInfo()
-  sh "fab -f build/admin.py install:"+pi[2]+","+pi[0]
-  report("deployed"+pi[2])
+  classpath = buildClasspath
+  if ENV.key?('SCRIPTGEN_CLASS')
+    sh "scala-2.9 -classpath "+classpath+":target/classes/ "+ENV['SCRIPTGEN_CLASS'] 
+    sh "fab -f build/admin.py install:"+pi[2]+","+pi[0]
+    report("deployed"+pi[2])
+  end
 end
+
+desc "run"
+task :run => :compile do                                                                      
+  pi = projectInfo()
+  report("ran"+pi[2])
+  classpath = buildClasspath
+  if ENV.key?('RUN_CLASS')
+    sh "scala-2.9 -classpath "+classpath+":target/classes/ "+ENV['RUN_CLASS'] 
+  end
+end
+
+
 
