@@ -2,6 +2,6 @@
 
 JAR_LOCATION="{$JARLOCATION}"
 
-SCRIPT="nohup java -jar $JAR_LOCATION {$RUNNER} >& /dev/null < /dev/null &"
+SCRIPT="java -Xms256m -Xmx256m -XX:NewSize=64m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -jar $JAR_LOCATION {$RUNNER}"
 
 ${SCRIPT}
